@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowRight, Check, CheckCircle2 } from 'lucide-react'
+import { ArrowRight, Check, CheckCircle2, Lock } from 'lucide-react'
 import { AuthLogo, BackLink, Field, PrimaryButton } from '../components/AuthUI'
 import { useSession } from '../sessionContext'
-import { useAdmin, waitingCount } from '../../admin/adminContext'
+import { nextToken, useAdmin, waitingCount } from '../../admin/adminContext'
 import { hospitals } from '../../data/mock'
 
 const selectClass =
@@ -15,36 +15,41 @@ export default function ConnectQueue() {
   const isNew = params.get('new') === '1'
 
   const { connectQueue } = useSession()
-  const { getDepartment } = useAdmin()
-  const medicine = getDepartment('medicine')
+  const { departments, getDepartment } = useAdmin()
+
+  // A closed OPD is not issuing tokens today, so it cannot be joined.
+  const openDepartments = departments.filter((d) => d.state !== 'closed')
 
   const [hospital, setHospital] = useState<string>(hospitals[0])
-  const [token, setToken] = useState('A72')
-  const [department, setDepartment] = useState('Medicine OPD')
+  const [deptId, setDeptId] = useState(openDepartments[0]?.id ?? 'medicine')
   const [trackingFor, setTrackingFor] = useState<'self' | 'accompanying'>('self')
   const [patientName, setPatientName] = useState('')
   const [error, setError] = useState<string>()
-  const [found, setFound] = useState(false)
+  /** The token actually handed out, frozen at the moment of joining. */
+  const [issued, setIssued] = useState<string>()
+
+  const dept = getDepartment(deptId)
+  const ahead = dept ? waitingCount(dept) : 0
+  const token = dept ? nextToken(dept) : ''
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
-    if (!token.trim()) {
-      setError('Please enter the token number from your OPD slip.')
+    if (!dept) {
+      setError('Choose an OPD that is open today.')
       return
     }
     setError(undefined)
+    setIssued(token)
     connectQueue({
-      deptId: 'medicine',
-      token: token.trim().toUpperCase(),
+      deptId: dept.id,
+      token,
       trackingFor,
       patientName: patientName.trim() || undefined,
     })
-    setFound(true)
   }
 
   // ---- success state -------------------------------------------------------
-  if (found && medicine) {
-    const ahead = waitingCount(medicine)
+  if (issued && dept) {
     return (
       <div className="flex min-h-dvh flex-col bg-admin-bg px-6 py-8 lg:px-10">
         <AuthLogo />
@@ -52,21 +57,19 @@ export default function ConnectQueue() {
         <main className="mx-auto flex w-full max-w-[440px] flex-1 flex-col justify-center py-10">
           <p className="flex items-center gap-2 text-[14px] font-medium text-sage">
             <CheckCircle2 className="h-[17px] w-[17px]" strokeWidth={2} aria-hidden />
-            Queue found
+            Token issued
           </p>
 
           <div className="mt-5 rounded-2xl border border-sage/30 bg-admin-card p-6">
-            <h1 className="display text-[26px] text-ivory">{medicine.fullName}</h1>
+            <h1 className="display text-[26px] text-ivory">{dept.fullName}</h1>
             <p className="mt-1.5 text-[14.5px] text-muted">
-              {medicine.room} · {medicine.doctor}
+              {dept.room} &middot; {dept.doctor}
             </p>
 
             <div className="mt-6 grid grid-cols-2 gap-4">
               <div>
-                <p className="text-[11.5px] uppercase tracking-[0.16em] text-muted-2">Token</p>
-                <p className="mt-1.5 text-[34px] font-semibold leading-none text-sage">
-                  {token.toUpperCase()}
-                </p>
+                <p className="text-[11.5px] uppercase tracking-[0.16em] text-muted-2">Your token</p>
+                <p className="mt-1.5 text-[34px] font-semibold leading-none text-sage">{issued}</p>
               </div>
               <div>
                 <p className="text-[11.5px] uppercase tracking-[0.16em] text-muted-2">
@@ -81,7 +84,8 @@ export default function ConnectQueue() {
             {trackingFor === 'accompanying' && (
               <p className="mt-5 border-t border-admin-line pt-4 text-[13.5px] text-muted">
                 You&rsquo;re tracking this queue for{' '}
-                <span className="text-ivory-2">{patientName || 'someone you are accompanying'}</span>.
+                <span className="text-ivory-2">{patientName || 'someone you are accompanying'}</span>
+                .
               </p>
             )}
           </div>
@@ -118,7 +122,7 @@ export default function ConnectQueue() {
           Let&rsquo;s find your OPD queue
         </h1>
         <p className="mt-2.5 text-[15px] leading-relaxed text-muted">
-          Enter the details from your OPD registration slip.
+          Pick your hospital and OPD. Your token is issued from that queue&rsquo;s live waiting list.
         </p>
 
         <form onSubmit={submit} noValidate className="mt-8 flex flex-col gap-5">
@@ -140,31 +144,54 @@ export default function ConnectQueue() {
             </select>
           </div>
 
-          <Field
-            label="OPD Token Number"
-            placeholder="A72"
-            value={token}
-            onChange={(e) => setToken(e.target.value)}
-            error={error}
-            className="uppercase"
-          />
-
           <div className="flex flex-col gap-2">
             <label htmlFor="department" className="text-[13.5px] font-medium text-ivory-2">
-              OPD / Department <span className="font-normal text-muted-2">(optional)</span>
+              OPD / Department
             </label>
             <select
               id="department"
-              value={department}
-              onChange={(e) => setDepartment(e.target.value)}
+              value={deptId}
+              onChange={(e) => setDeptId(e.target.value)}
               className={selectClass}
             >
-              {['Medicine OPD', 'Orthopaedics OPD', 'ENT OPD', 'Paediatrics OPD'].map((d) => (
-                <option key={d} value={d} className="bg-admin-card">
-                  {d}
+              {openDepartments.map((d) => (
+                <option key={d.id} value={d.id} className="bg-admin-card">
+                  {d.fullName}
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Issued by the hospital, not claimed by the patient: the number comes
+              from the end of the live waiting list and cannot be typed over. */}
+          <div className="flex flex-col gap-2">
+            <span id="token-label" className="text-[13.5px] font-medium text-ivory-2">
+              OPD Token Number
+            </span>
+            <div
+              aria-labelledby="token-label"
+              className="flex items-center justify-between gap-3 rounded-xl border border-field-border bg-field px-4 py-3.5"
+            >
+              <output className="text-[15.5px] font-semibold tracking-wide text-ivory">
+                {token || '—'}
+              </output>
+              <span className="flex shrink-0 items-center gap-1.5 text-[12.5px] text-muted">
+                <Lock className="h-[13px] w-[13px]" strokeWidth={2} aria-hidden />
+                Assigned automatically
+              </span>
+            </div>
+            <p className="text-[12.5px] leading-relaxed text-muted">
+              {dept
+                ? `Next in line at ${dept.fullName}. ${ahead} ${
+                    ahead === 1 ? 'patient is' : 'patients are'
+                  } ahead of you; now serving ${dept.nowServing}.`
+                : 'Choose an OPD to be issued a token.'}
+            </p>
+            {error && (
+              <p role="alert" className="text-[13px] text-state-urgent">
+                {error}
+              </p>
+            )}
           </div>
 
           {/* Attendants use the same account — no separate sign-up path. */}
@@ -224,7 +251,7 @@ export default function ConnectQueue() {
           )}
 
           <PrimaryButton type="submit">
-            Track My Queue
+            Join This Queue
             <ArrowRight
               className="h-[18px] w-[18px] transition-transform duration-200 group-hover:translate-x-[3px]"
               strokeWidth={2}

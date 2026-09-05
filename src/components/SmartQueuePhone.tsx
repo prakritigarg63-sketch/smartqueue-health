@@ -10,6 +10,11 @@ interface SmartQueuePhoneProps {
   live?: boolean
   nowServing?: string
   ahead?: number | null
+  /** The token the signed-in patient was issued; the marketing phone uses the mock. */
+  patientToken?: string
+  department?: string
+  room?: string
+  doctor?: string
   statusLabel?: string
   tone?: QueueTone
   guidance?: string
@@ -20,6 +25,10 @@ export function SmartQueuePhone({
   live = false,
   nowServing,
   ahead,
+  patientToken = visit.patientToken,
+  department = visit.department,
+  room = visit.room,
+  doctor = visit.doctor,
   statusLabel = 'Queue moving normally',
   tone = 'ok',
   guidance,
@@ -64,9 +73,9 @@ export function SmartQueuePhone({
             <div className="flex items-start justify-between px-6 pt-4">
               <span className="w-6" />
               <div className="text-center">
-                <h3 className="text-[19px] font-medium text-ivory">{visit.department}</h3>
+                <h3 className="text-[19px] font-medium text-ivory">{department}</h3>
                 <p className="mt-1 text-[13px] text-muted">
-                  {visit.room} &middot; {visit.doctor}
+                  {room} &middot; {doctor}
                 </p>
               </div>
               <Menu className="mt-1 h-5 w-5 text-muted" strokeWidth={1.8} />
@@ -83,7 +92,7 @@ export function SmartQueuePhone({
                 Your token
               </p>
               <p className="mt-1.5 text-[56px] font-light leading-none tracking-tight text-sage">
-                {visit.patientToken}
+                {patientToken}
               </p>
             </div>
 
@@ -124,7 +133,7 @@ export function SmartQueuePhone({
             <div className="mt-5 px-6">
               <QueueProgress
                 nowServing={currentToken}
-                patientToken={visit.patientToken}
+                patientToken={patientToken}
                 progress={progress}
                 ahead={patientsAhead}
               />

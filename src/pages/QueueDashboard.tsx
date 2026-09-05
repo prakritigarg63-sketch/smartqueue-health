@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { SmartQueuePhone } from '../components/SmartQueuePhone'
 import { Logo } from '../components/Logo'
 import { PatientAccountMenu } from '../components/PatientAccountMenu'
+import { useSession } from '../auth/sessionContext'
 import { queueStatePresets, visit, type QueueState } from '../data/mock'
 import { useAdmin, waitingCount } from '../admin/adminContext'
 import type { Department } from '../admin/types'
@@ -63,12 +64,20 @@ function livePreset(dept: Department) {
 
 export default function QueueDashboard({ state }: { state: ScreenState }) {
   const { getDepartment } = useAdmin()
-  const dept = getDepartment('medicine')
+  const { session } = useSession()
+  // Follow whichever OPD the patient actually joined, not a fixed one.
+  const connected = session.connectedQueue
+  const dept = getDepartment(connected?.deptId ?? 'medicine')
 
   const isLive = state === 'live' && dept
   const preset = isLive ? livePreset(dept) : queueStatePresets[state as QueueState]
   const nowServing = isLive ? dept.nowServing : (preset as (typeof queueStatePresets)['normal']).nowServing
   const room = isLive ? dept.room : visit.room
+  const department = isLive ? dept.fullName : visit.department
+  const doctor = isLive ? dept.doctor : visit.doctor
+  // The canned demo states keep the mock visit; only the live screen is the
+  // patient's own queue.
+  const patientToken = isLive ? connected?.token : undefined
 
   return (
     <div className="min-h-dvh bg-ink">
@@ -103,6 +112,10 @@ export default function QueueDashboard({ state }: { state: ScreenState }) {
           <SmartQueuePhone
             nowServing={nowServing}
             ahead={preset.ahead}
+            patientToken={patientToken}
+            department={department}
+            room={room}
+            doctor={doctor}
             statusLabel={preset.label}
             tone={preset.tone}
             guidance={preset.guidance}
