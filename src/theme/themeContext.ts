@@ -4,6 +4,7 @@ export type Theme = 'light' | 'dark' | 'system'
 export type ResolvedTheme = 'light' | 'dark'
 
 export const THEME_KEY = 'smartqueue-theme'
+export const ENHANCED_KEY = 'smartqueue-enhanced-contrast'
 
 export interface ThemeContextValue {
   /** What the user chose, including 'system'. */
@@ -11,6 +12,12 @@ export interface ThemeContextValue {
   /** What is actually on screen right now. */
   resolvedTheme: ResolvedTheme
   setTheme: (theme: Theme) => void
+  /**
+   * "Enhanced visual differentiation" — an amplifier, not a fix. Every status
+   * already carries an icon and a text label with this off.
+   */
+  enhanced: boolean
+  setEnhanced: (on: boolean) => void
 }
 
 export const ThemeContext = createContext<ThemeContextValue | null>(null)
@@ -34,5 +41,13 @@ export function readStoredTheme(): Theme {
     return v === 'light' || v === 'dark' || v === 'system' ? v : 'system'
   } catch {
     return 'system'
+  }
+}
+
+export function readStoredEnhanced(): boolean {
+  try {
+    return localStorage.getItem(ENHANCED_KEY) === 'true'
+  } catch {
+    return false
   }
 }

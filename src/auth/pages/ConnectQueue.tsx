@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowRight, CheckCircle2 } from 'lucide-react'
+import { ArrowRight, Check, CheckCircle2 } from 'lucide-react'
 import { AuthLogo, BackLink, Field, PrimaryButton } from '../components/AuthUI'
 import { useSession } from '../sessionContext'
 import { useAdmin, waitingCount } from '../../admin/adminContext'
@@ -196,13 +196,18 @@ export default function ConnectQueue() {
                   />
                   <span
                     aria-hidden
-                    className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border transition-colors duration-200 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-gold ${
-                      checked ? 'border-sage' : 'border-field-border'
+                    className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-200 ${
+                      checked ? 'border-sage bg-sage' : 'border-field-border'
                     }`}
                   >
-                    {checked && <span className="h-[8px] w-[8px] rounded-full bg-sage" />}
+                    {checked && (
+                      <Check className="h-[11px] w-[11px] text-on-primary" strokeWidth={3} />
+                    )}
                   </span>
                   {opt.label}
+                  {checked && (
+                    <span className="ml-auto text-[12px] font-medium text-sage-ink">Selected</span>
+                  )}
                 </label>
               )
             })}

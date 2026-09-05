@@ -117,6 +117,14 @@ export function ThemeChoices({ className = '' }: { className?: string }) {
             >
               <OptIcon className="h-[17px] w-[17px]" strokeWidth={1.7} aria-hidden />
               {label}
+              {active ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium">
+                  <Check className="h-3 w-3" strokeWidth={2.6} aria-hidden />
+                  Selected
+                </span>
+              ) : (
+                <span className="text-[11px] text-transparent">&nbsp;</span>
+              )}
             </button>
           )
         })}

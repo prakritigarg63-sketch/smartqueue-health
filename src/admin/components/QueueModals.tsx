@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Bell, Info, PauseCircle, PlayCircle, Send } from 'lucide-react'
+import { Bell, Check, Info, PauseCircle, PlayCircle, Send } from 'lucide-react'
 import { Modal, ModalCancel, ModalConfirm } from './Modal'
 import type { Department } from '../types'
 
@@ -39,13 +39,16 @@ function Choice({
       />
       <span
         aria-hidden
-        className={`flex h-[17px] w-[17px] shrink-0 items-center justify-center rounded-full border ${
-          checked ? 'border-sage' : 'border-admin-line-2'
+        className={`flex h-[17px] w-[17px] shrink-0 items-center justify-center rounded-full border-2 ${
+          checked ? 'border-sage bg-sage' : 'border-admin-line-2'
         }`}
       >
-        {checked && <span className="h-[8px] w-[8px] rounded-full bg-sage" />}
+        {checked && <Check className="h-[10px] w-[10px] text-on-primary" strokeWidth={3} />}
       </span>
       {children}
+      {checked && (
+        <span className="ml-auto text-[12px] font-medium text-sage-ink">Selected</span>
+      )}
     </label>
   )
 }

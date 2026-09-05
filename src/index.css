@@ -75,6 +75,25 @@
   --color-device-1: #3b4440;
   --color-device-2: #141b18;
   --color-device-3: #2a322d;
+
+  /* ---------------------------------------------------------------
+     Semantic status states. Named for meaning, not hue, because the
+     colour is only ever one of four signals — every state also carries
+     an icon, a text label and (where states sit together) a shape.
+     --------------------------------------------------------------- */
+  --color-status-normal: #8da874;
+  --color-status-normal-bg: #16241a;
+  --color-status-delayed: #c7a34f;
+  --color-status-delayed-bg: #2a2313;
+  --color-status-paused: #c07b62;
+  --color-status-paused-bg: #2b1b16;
+  --color-status-closed: #9a978d;
+  --color-status-closed-bg: #1e211f;
+  --color-status-next: #d1ac55;
+  --color-status-next-bg: #2a2313;
+
+  /* Focus is never a colour shift alone — it is a thick, offset ring. */
+  --color-focus: #d1ac55;
 }
 
 /* ---------------------------------------------------------------
@@ -128,6 +147,21 @@
 
   /* the screen goes light; the hardware around it stays dark */
   --color-screen: #f5f7f1;
+
+  /* Status foregrounds are deep enough to clear AA on their own pale
+     backgrounds, which is what a pale-sage or pale-amber chip demands. */
+  --color-status-normal: #3f5936;
+  --color-status-normal-bg: #e6ecdf;
+  --color-status-delayed: #7a5713;
+  --color-status-delayed-bg: #f3ebd7;
+  --color-status-paused: #8a3f35;
+  --color-status-paused-bg: #f5e2de;
+  --color-status-closed: #5c675e;
+  --color-status-closed-bg: #e8eae4;
+  --color-status-next: #7a5713;
+  --color-status-next-bg: #f3ebd7;
+
+  --color-focus: #6d551b;
 }
 
 /* ---------------------------------------------------------------
@@ -302,10 +336,26 @@
     color: var(--color-on-primary);
   }
 
+  /* A thick, offset ring rather than a colour shift — visible in both
+     themes and to anyone who cannot separate the accent hue from its
+     surroundings. */
   :focus-visible {
-    outline: 2px solid var(--color-gold);
-    outline-offset: 3px;
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
     border-radius: 4px;
+  }
+
+  /* Links carry an underline as well as colour. */
+  .link {
+    color: var(--color-gold);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+
+  .link:hover {
+    color: var(--color-gold-2);
+    text-decoration-thickness: 2px;
   }
 
   .display {
@@ -323,6 +373,31 @@
     text-transform: uppercase;
     color: var(--color-muted-2);
   }
+}
+
+/* ---------------------------------------------------------------
+   "Enhanced visual differentiation" — an opt-in amplifier, never the fix.
+   Every status already carries an icon and a text label without it; this
+   only thickens borders and strengthens shape cues for people who want
+   more separation.
+   --------------------------------------------------------------- */
+html[data-enhanced='true'] .status-chip {
+  border-width: 2px;
+  font-weight: 600;
+}
+
+html[data-enhanced='true'] .queue-node-done {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+html[data-enhanced='true'] .queue-node-waiting {
+  border-width: 2.5px;
+}
+
+html[data-enhanced='true'] .queue-node-you {
+  outline: 2px dashed currentColor;
+  outline-offset: 3px;
 }
 
 /* A theme change snaps the palette; only the page ground cross-fades.

@@ -1,6 +1,15 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeftRight, Bell, Check, Clock, PauseCircle, PlayCircle, UserX } from 'lucide-react'
+import {
+  ArrowLeftRight,
+  Bell,
+  Check,
+  Clock,
+  ListFilter,
+  PauseCircle,
+  PlayCircle,
+  UserX,
+} from 'lucide-react'
 import { AdminLayout } from '../components/AdminLayout'
 import { PageHeading } from './AdminOverview'
 import { StatCard, InsightsCard } from '../components/StatCard'
@@ -8,6 +17,7 @@ import { StatusBadge } from '../components/StatusBadge'
 import { DepartmentSummary, OPDTable, TableShell } from '../components/Tables'
 import { useAdmin, waitingCount } from '../adminContext'
 import { ThemeChoices } from '../../components/ThemeToggle'
+import { EnhancedToggle } from '../../components/EnhancedToggle'
 import type { AlertKind, PatientAlert } from '../types'
 
 // ---------------------------------------------------------------------------
@@ -133,6 +143,9 @@ export function AdminAlerts() {
                   : 'border-admin-line-2 text-muted hover:text-ivory'
               }`}
             >
+              {isActive && (
+                <ListFilter className="mr-1.5 inline h-3.5 w-3.5" strokeWidth={2.4} aria-hidden />
+              )}
               {f.label}
               <span className="ml-2 text-[12px] text-muted-2 tabular-nums">{count}</span>
             </button>
@@ -227,18 +240,35 @@ function QueueVolumeChart() {
     <section className="rounded-xl border border-admin-line bg-admin-card p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-3">
         <h2 className="text-[16px] font-semibold text-ivory">Queue Volume by Hour</h2>
-        <p className="text-[13px] text-muted-2">
-          Peak <span className="text-gold">10:30 – 11:30 AM</span>
+        {/* Legend: shape + line + text, so the series is identifiable without
+            reading any colour. */}
+        <p className="flex items-center gap-4 text-[13px] text-muted-2">
+          <span className="inline-flex items-center gap-1.5">
+            <svg viewBox="0 0 22 10" className="h-2.5 w-[22px]" aria-hidden>
+              <line x1="0" y1="5" x2="22" y2="5" stroke="var(--color-status-normal)" strokeWidth="2" />
+              <circle cx="11" cy="5" r="3" fill="var(--color-status-normal)" />
+            </svg>
+            Patients waiting
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <svg viewBox="0 0 12 12" className="h-3 w-3" aria-hidden>
+              <polygon points="6,1 11,10 1,10" fill="var(--color-status-next)" />
+            </svg>
+            Peak 10:30 – 11:30 AM
+          </span>
         </p>
       </div>
 
       <div className="mt-4 overflow-x-auto">
         <svg viewBox={`0 0 ${w} ${h}`} className="h-[200px] w-full min-w-[560px]" role="img"
-          aria-label="Patients waiting by hour. Peak between 10 AM and 11 AM.">
+          aria-label={`Patients waiting by hour, 8 AM to 3 PM: ${hourly
+            .map((d) => `${d.hour} ${d.value}`)
+            .join(', ')}. Peak 10:30 to 11:30 AM.`}
+        >
           <defs>
             <linearGradient id="qv-fill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--color-sage)" stopOpacity="0.28" />
-              <stop offset="100%" stopColor="var(--color-sage)" stopOpacity="0" />
+              <stop offset="0%" stopColor="var(--color-status-normal)" stopOpacity="0.28" />
+              <stop offset="100%" stopColor="var(--color-status-normal)" stopOpacity="0" />
             </linearGradient>
           </defs>
 
@@ -255,17 +285,48 @@ function QueueVolumeChart() {
           ))}
 
           <path d={area} fill="url(#qv-fill)" />
-          <path d={line} fill="none" stroke="var(--color-sage)" strokeWidth="2" strokeLinejoin="round" />
+          <path
+            d={line}
+            fill="none"
+            stroke="var(--color-status-normal)"
+            strokeWidth="2.5"
+            strokeLinejoin="round"
+          />
 
-          {points.map(([px, py], i) => (
-            <circle
-              key={hourly[i].hour}
-              cx={px}
-              cy={py}
-              r={i === peakIndex ? 5 : 3}
-              fill={i === peakIndex ? 'var(--color-gold)' : 'var(--color-sage)'}
-            />
-          ))}
+          {points.map(([px, py], i) =>
+            i === peakIndex ? (
+              // peak: a triangle plus a written label, so it survives greyscale
+              <g key={hourly[i].hour}>
+                <polygon
+                  className="chart-marker"
+                  points={`${px},${py - 7} ${px + 6.5},${py + 4} ${px - 6.5},${py + 4}`}
+                  fill="var(--color-status-next)"
+                  stroke="var(--color-admin-card)"
+                  strokeWidth="1.5"
+                />
+                <text
+                  x={px}
+                  y={py - 13}
+                  textAnchor="middle"
+                  fontSize="11"
+                  fontWeight="600"
+                  fill="var(--color-status-next)"
+                  fontFamily="Inter, sans-serif"
+                >
+                  Peak
+                </text>
+              </g>
+            ) : (
+              <circle
+                key={hourly[i].hour}
+                className="chart-marker"
+                cx={px}
+                cy={py}
+                r={3}
+                fill="var(--color-status-normal)"
+              />
+            ),
+          )}
 
           {hourly.map((d, i) => (
             <text
@@ -338,6 +399,15 @@ export function AdminSettings() {
           Choose how SmartQueue looks on this device.
         </p>
         <ThemeChoices className="mt-4 max-w-[420px]" />
+      </div>
+
+      <div className="mb-4 rounded-xl border border-admin-line bg-admin-card p-5">
+        <h2 className="text-[16px] font-semibold text-ivory">Accessibility</h2>
+        <p className="mt-1 text-[13.5px] text-muted">
+          Queue states already carry an icon and a label without this — it only makes the
+          difference between them stronger.
+        </p>
+        <EnhancedToggle className="mt-4 max-w-[520px]" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">

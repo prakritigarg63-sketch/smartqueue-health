@@ -123,7 +123,7 @@ export default function AdminLogin() {
                 </span>
                 Remember me
               </label>
-              <a href="#reset" className="text-gold transition-colors duration-200 hover:text-gold-2">
+              <a href="#reset" className="link transition-colors duration-200">
                 Forgot password?
               </a>
             </div>

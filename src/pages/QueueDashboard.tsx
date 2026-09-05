@@ -25,7 +25,7 @@ function livePreset(dept: Department) {
   switch (dept.state) {
     case 'paused':
       return {
-        tone: 'idle' as const,
+        tone: 'urgent' as const,
         label: 'Queue temporarily paused',
         guidance: `${dept.pause?.reason ?? 'The doctor is temporarily unavailable'}. You don't need to return yet. We'll notify you when consultations resume.`,
         ahead,
@@ -39,14 +39,14 @@ function livePreset(dept: Department) {
       }
     case 'resumed':
       return {
-        tone: 'ok' as const,
+        tone: 'resumed' as const,
         label: 'Consultations resumed',
         guidance: 'Your queue is moving again. Your position has been updated.',
         ahead,
       }
     case 'closed':
       return {
-        tone: 'idle' as const,
+        tone: 'closed' as const,
         label: 'OPD closed',
         guidance: 'This OPD has closed for the day.',
         ahead: null,
@@ -132,7 +132,7 @@ export default function QueueDashboard({ state }: { state: ScreenState }) {
           </ul>
           <p className="mt-6 text-center text-[13px] text-muted-2">
             Change the queue in{' '}
-            <Link to="/admin/queues/medicine" className="text-gold hover:underline">
+            <Link to="/admin/queues/medicine" className="link">
               Hospital Admin
             </Link>{' '}
             and this screen follows.

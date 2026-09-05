@@ -1,8 +1,9 @@
-import { Armchair, Bell, Info, Landmark, Menu, Wifi } from 'lucide-react'
+import { Bell, Info, Landmark, Menu, Wifi } from 'lucide-react'
 import { useQueueSimulation } from '../hooks/useQueueSimulation'
 import { visit } from '../data/mock'
 import { QueueProgress } from './QueueProgress'
 import { QueueStatus, type QueueTone } from './QueueStatus'
+import { PatientGuidance } from './PatientGuidance'
 
 interface SmartQueuePhoneProps {
   /** Let the queue advance on a timer, as it does in the hero. */
@@ -125,23 +126,13 @@ export function SmartQueuePhone({
                 nowServing={currentToken}
                 patientToken={visit.patientToken}
                 progress={progress}
+                ahead={patientsAhead}
               />
             </div>
 
             {/* guidance */}
             <div className="mt-5 px-6">
-              <div className="flex gap-3 rounded-2xl border border-sage/20 bg-sage/[0.07] px-4 py-3.5">
-                <Armchair className="mt-0.5 h-[18px] w-[18px] shrink-0 text-sage" strokeWidth={1.6} />
-                <p className="text-[13px] leading-[1.5] text-ivory-2">
-                  {guidance ?? (
-                    <>
-                      You&rsquo;re safe to wait elsewhere.
-                      <br />
-                      We&rsquo;ll alert you when {visit.alertThreshold} patients remain.
-                    </>
-                  )}
-                </p>
-              </div>
+              <PatientGuidance tone={tone} ahead={patientsAhead} instruction={guidance} />
             </div>
 
             {/* alerts */}
@@ -150,7 +141,7 @@ export function SmartQueuePhone({
                 type="button"
                 className="flex w-full items-center justify-center gap-2.5 rounded-2xl border border-line-2 bg-surface/70 py-3.5 text-[14px] font-medium text-ivory transition-colors duration-300 hover:border-sage/50"
               >
-                <Bell className="h-4 w-4 text-gold" strokeWidth={1.8} />
+                <Bell className="h-4 w-4 text-status-next" strokeWidth={2} aria-hidden />
                 Alerts ON
               </button>
             </div>

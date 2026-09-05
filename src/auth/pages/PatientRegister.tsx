@@ -118,7 +118,7 @@ export default function PatientRegister() {
 
           <Checkbox id="terms" checked={agreed} onChange={setAgreed} error={errors.terms}>
             I agree to the{' '}
-            <a href="#terms" className="text-gold hover:underline">
+            <a href="#terms" className="link">
               Terms &amp; Privacy Policy
             </a>
           </Checkbox>
@@ -142,7 +142,10 @@ export default function PatientRegister() {
 
         <p className="mt-6 text-center text-[14px] text-muted">
           Already registered?{' '}
-          <Link to="/patient/login" className="text-sage transition-colors duration-200 hover:text-sage-deep">
+          <Link
+            to="/patient/login"
+            className="font-medium text-sage-ink underline underline-offset-[3px] transition-colors duration-200 hover:text-sage-deep"
+          >
             Sign In
           </Link>
         </p>

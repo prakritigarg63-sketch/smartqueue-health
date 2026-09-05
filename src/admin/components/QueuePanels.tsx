@@ -1,6 +1,7 @@
 import {
   AlertTriangle,
   ArrowLeftRight,
+  Ban,
   CheckCircle2,
   PauseCircle,
   PlayCircle,
@@ -38,7 +39,8 @@ function ActionButton({
       onClick={onClick}
       disabled={disabled}
       title={hint}
-      className="flex w-full items-center gap-3 rounded-lg border border-admin-line-2 px-4 py-3 text-left text-[14px] font-medium text-ivory-2 transition-colors duration-200 hover:border-sage/45 hover:text-ivory disabled:cursor-not-allowed disabled:border-admin-line disabled:text-faint"
+      aria-disabled={disabled}
+      className="flex w-full items-center gap-3 rounded-lg border border-admin-line-2 px-4 py-3 text-left text-[14px] font-medium text-ivory-2 transition-colors duration-200 hover:border-sage/45 hover:text-ivory disabled:cursor-not-allowed disabled:border-dashed disabled:border-admin-line disabled:text-muted-2"
     >
       <Icon className="h-[17px] w-[17px] shrink-0 text-gold" strokeWidth={1.8} aria-hidden />
       {children}
@@ -72,10 +74,23 @@ export function QueueActionPanel({
           type="button"
           onClick={onCallNext}
           disabled={paused || closed}
-          className="flex w-full items-center justify-center gap-2.5 rounded-lg bg-sage px-4 py-3.5 text-[15px] font-semibold text-on-primary transition-colors duration-200 hover:bg-sage-deep disabled:cursor-not-allowed disabled:bg-sage/25 disabled:text-on-primary/50"
+          aria-disabled={paused || closed}
+          title={
+            paused
+              ? 'Resume the queue before calling the next patient.'
+              : closed
+                ? 'This OPD is closed.'
+                : undefined
+          }
+          className="flex w-full items-center justify-center gap-2.5 rounded-lg border-2 border-transparent bg-sage px-4 py-3.5 text-[15px] font-semibold text-on-primary transition-colors duration-200 hover:bg-sage-deep disabled:cursor-not-allowed disabled:border-dashed disabled:border-admin-line-2 disabled:bg-transparent disabled:text-muted-2"
         >
-          <PlayCircle className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
+          {paused || closed ? (
+            <Ban className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
+          ) : (
+            <PlayCircle className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
+          )}
           Call Next Patient
+          {(paused || closed) && <span className="text-[13px] font-normal">— unavailable</span>}
         </button>
 
         {paused ? (

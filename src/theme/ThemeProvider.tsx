@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
+  ENHANCED_KEY,
   THEME_KEY,
   ThemeContext,
+  readStoredEnhanced,
   readStoredTheme,
   systemTheme,
   type ResolvedTheme,
@@ -9,10 +11,11 @@ import {
 } from './themeContext'
 
 /**
- * Owns the theme preference and keeps `data-theme` on <html> in sync.
+ * Owns the display preferences — theme, and the optional enhanced visual
+ * differentiation — and keeps them on <html> as attributes.
  *
- * The first paint is handled by an inline script in index.html — by the time
- * React mounts the attribute is already correct, so this never causes a flash.
+ * The first paint is handled by an inline script in index.html, so by the time
+ * React mounts the attributes are already correct and nothing flashes.
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() =>
@@ -21,14 +24,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [systemPref, setSystemPref] = useState<ResolvedTheme>(() =>
     typeof window === 'undefined' ? 'dark' : systemTheme(),
   )
+  const [enhanced, setEnhancedState] = useState<boolean>(() =>
+    typeof window === 'undefined' ? false : readStoredEnhanced(),
+  )
 
   // Derived, not stored: the preference plus the OS setting fully determine it.
   const resolvedTheme: ResolvedTheme = theme === 'system' ? systemPref : theme
 
   const first = useRef(true)
 
-  // Write the resolved theme to <html>, and animate only the change itself —
-  // never the initial paint.
   useEffect(() => {
     const root = document.documentElement
 
@@ -50,6 +54,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(id)
   }, [resolvedTheme])
 
+  useEffect(() => {
+    document.documentElement.setAttribute('data-enhanced', String(enhanced))
+  }, [enhanced])
+
   // Follow the operating system. The listener stays mounted so switching back
   // to 'system' picks up the current setting immediately.
   useEffect(() => {
@@ -68,9 +76,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setThemeState(next)
   }, [])
 
+  const setEnhanced = useCallback((on: boolean) => {
+    try {
+      localStorage.setItem(ENHANCED_KEY, String(on))
+    } catch {
+      /* private mode */
+    }
+    setEnhancedState(on)
+  }, [])
+
   const value = useMemo(
-    () => ({ theme, resolvedTheme, setTheme }),
-    [theme, resolvedTheme, setTheme],
+    () => ({ theme, resolvedTheme, setTheme, enhanced, setEnhanced }),
+    [theme, resolvedTheme, setTheme, enhanced, setEnhanced],
   )
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>

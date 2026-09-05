@@ -91,7 +91,7 @@ export default function PatientLogin() {
               </Checkbox>
               <a
                 href="#reset"
-                className="text-[13.5px] text-gold transition-colors duration-200 hover:text-gold-2"
+                className="link text-[13.5px] transition-colors duration-200"
               >
                 Forgot password?
               </a>

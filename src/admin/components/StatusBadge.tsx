@@ -1,4 +1,14 @@
-import { CheckCircle2, CircleSlash, Clock, PauseCircle, PlayCircle } from 'lucide-react'
+import {
+  CheckCircle2,
+  CircleDot,
+  CircleX,
+  Hourglass,
+  PauseCircle,
+  PlayCircle,
+  TriangleAlert,
+  UserRoundCheck,
+  UserX,
+} from 'lucide-react'
 import type { QueueState, TokenStatus } from '../types'
 
 const queueStyles: Record<
@@ -14,7 +24,7 @@ const queueStyles: Record<
   },
   delayed: {
     label: 'Queue delayed',
-    icon: Clock,
+    icon: TriangleAlert,
     text: 'text-gold',
     bg: 'bg-gold/12',
     ring: 'ring-gold/30',
@@ -35,7 +45,7 @@ const queueStyles: Record<
   },
   closed: {
     label: 'OPD closed',
-    icon: CircleSlash,
+    icon: CircleX,
     text: 'text-muted-2',
     bg: 'bg-muted-2/10',
     ring: 'ring-muted-2/25',
@@ -76,18 +86,27 @@ export function StatusBadge({ state, variant = 'short', className = '' }: Status
   )
 }
 
-const tokenStyles: Record<TokenStatus, { label: string; className: string }> = {
-  consulting: { label: 'In Consultation', className: 'text-sage' },
-  next: { label: 'Next', className: 'text-gold' },
-  waiting: { label: 'Waiting', className: 'text-muted' },
-  held: { label: 'Held', className: 'text-state-warn' },
-  missed: { label: 'Missed', className: 'text-state-urgent' },
-  completed: { label: 'Completed', className: 'text-muted-2' },
-  onhold: { label: 'On Hold', className: 'text-state-urgent' },
+const tokenStyles: Record<
+  TokenStatus,
+  { label: string; className: string; icon: typeof CheckCircle2 }
+> = {
+  consulting: { label: 'In Consultation', className: 'text-status-normal', icon: UserRoundCheck },
+  next: { label: 'Next', className: 'text-status-next', icon: CircleDot },
+  waiting: { label: 'Waiting', className: 'text-muted', icon: Hourglass },
+  held: { label: 'Held', className: 'text-status-delayed', icon: PauseCircle },
+  missed: { label: 'Missed', className: 'text-status-paused', icon: UserX },
+  completed: { label: 'Completed', className: 'text-muted-2', icon: CheckCircle2 },
+  onhold: { label: 'On Hold', className: 'text-status-paused', icon: PauseCircle },
 }
 
 /** Per-token status inside the queue table. */
 export function TokenStatusLabel({ status }: { status: TokenStatus }) {
   const s = tokenStyles[status]
-  return <span className={`text-[14px] font-medium ${s.className}`}>{s.label}</span>
+  const Icon = s.icon
+  return (
+    <span className={`inline-flex items-center gap-2 text-[14px] font-medium ${s.className}`}>
+      <Icon className="h-[15px] w-[15px] shrink-0" strokeWidth={2} aria-hidden />
+      {s.label}
+    </span>
+  )
 }

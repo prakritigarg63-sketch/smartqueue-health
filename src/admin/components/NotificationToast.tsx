@@ -17,7 +17,11 @@ export function NotificationToast({ toast, onDismiss }: { toast: Toast; onDismis
       role="status"
       className={`animate-toast flex w-[340px] items-start gap-3 rounded-xl border bg-admin-card-2 px-4 py-3.5 shadow-float ${tone.ring}`}
     >
-      <Icon className={`mt-0.5 h-[17px] w-[17px] shrink-0 ${tone.className}`} strokeWidth={1.9} />
+      <Icon
+        className={`mt-0.5 h-[17px] w-[17px] shrink-0 ${tone.className}`}
+        strokeWidth={1.9}
+        aria-hidden
+      />
       <div className="flex-1">
         <p className="text-[14px] font-medium text-ivory">{toast.title}</p>
         {toast.detail && <p className="mt-1 text-[12.5px] leading-relaxed text-muted">{toast.detail}</p>}
